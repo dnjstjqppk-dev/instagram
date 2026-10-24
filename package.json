@@ -1,0 +1,17 @@
+{
+  "name": "aura-social-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Global Social Network (Instagram Functional Parity)",
+  "scripts": {
+    "dev:web": "pnpm --filter @aura/web dev",
+    "dev:admin": "pnpm --filter @aura/admin dev",
+    "dev:partner": "pnpm --filter @aura/partner dev",
+    "build:web": "pnpm --filter @aura/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

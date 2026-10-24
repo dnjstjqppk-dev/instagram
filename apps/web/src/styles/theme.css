@@ -1,0 +1,68 @@
+:root {
+  --aura-color-bg: #FFFFFF;
+  --aura-color-surface: #FAFAFA;
+  --aura-color-card: #FFFFFF;
+  --aura-color-border: #DBDBDB;
+  --aura-color-border-subtle: #EFEFEF;
+  --aura-color-text-primary: #121212;
+  --aura-color-text-secondary: #737373;
+  --aura-color-accent: #0095F6;
+  --aura-color-accent-hover: #1877F2;
+  --aura-color-danger: #ED4956;
+  --aura-ring-story: linear-gradient(45deg, #F58529, #DD2A7B, #8134AF, #515BD4);
+  --aura-ring-close-friends: linear-gradient(45deg, #10B981, #059669);
+  --aura-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --sidebar-width: 244px;
+}
+
+[data-theme='dark'] {
+  --aura-color-bg: #000000;
+  --aura-color-surface: #121212;
+  --aura-color-card: #181818;
+  --aura-color-border: #262626;
+  --aura-color-border-subtle: #1F1F1F;
+  --aura-color-text-primary: #F5F5F5;
+  --aura-color-text-secondary: #A8A8A8;
+  --aura-color-accent: #0095F6;
+  --aura-color-accent-hover: #1877F2;
+  --aura-color-danger: #ED4956;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--aura-font-family);
+  background-color: var(--aura-color-bg);
+  color: var(--aura-color-text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--aura-color-border);
+  border-radius: 4px;
+}

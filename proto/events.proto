@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package aura.events.v1;
+
+option go_package = "github.com/dnjstjqppk-dev/instagram/proto/events/v1;eventsv1";
+
+message DomainEventEnvelope {
+  string event_id = 1;
+  string event_type = 2;
+  string aggregate_type = 3;
+  string aggregate_id = 4;
+  int64 timestamp_epoch_ms = 5;
+  bytes payload_json = 6;
+}
+
+message UserRegisteredPayload {
+  string user_id = 1;
+  string username = 2;
+  string email = 3;
+  string account_type = 4;
+}
+
+message PostCreatedPayload {
+  string post_id = 1;
+  string author_id = 2;
+  string post_type = 3;
+  string visibility = 4;
+  repeated string media_urls = 5;
+  repeated string hashtag_names = 6;
+  repeated string tagged_user_ids = 7;
+}
+
+message FollowCreatedPayload {
+  string follower_id = 1;
+  string following_id = 2;
+}
+
+message PostLikedPayload {
+  string post_id = 1;
+  string user_id = 2;
+  string author_id = 3;
+}
+
+message MessageSentPayload {
+  string message_id = 1;
+  string conversation_id = 2;
+  string sender_id = 3;
+  string message_type = 4;
+}

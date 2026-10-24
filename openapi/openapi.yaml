@@ -1,0 +1,565 @@
+openapi: 3.1.0
+info:
+  title: Aura Social Platform API (Instagram Functional Parity)
+  version: 1.0.0
+  description: >
+    Complete enterprise REST API for Aura Social Platform, covering user identity,
+    social graph, posts, feed, stories, reels, direct messaging, commerce, ads, and moderation.
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local API Gateway
+  - url: https://api.aurasocial.net/api/v1
+    description: Production API Gateway
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new account
+      operationId: registerUser
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password, full_name, birthdate]
+              properties:
+                username: { type: string, example: "jane_doe" }
+                email: { type: string, format: email, example: "jane@example.com" }
+                password: { type: string, format: password, example: "Secret123!" }
+                full_name: { type: string, example: "Jane Doe" }
+                birthdate: { type: string, format: date, example: "2000-01-01" }
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/login:
+    post:
+      summary: Authenticate user & issue tokens
+      operationId: loginUser
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password]
+              properties:
+                identifier: { type: string, example: "jane_doe" }
+                password: { type: string, example: "Secret123!" }
+                device_id: { type: string, example: "web-chrome-client-123" }
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      summary: Rotate refresh token & obtain new access token
+      operationId: refreshToken
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: Tokens rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/me:
+    get:
+      summary: Get current authenticated user profile & roles
+      operationId: getCurrentUser
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /profiles/{username}:
+    get:
+      summary: Fetch user public profile
+      operationId: getProfile
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{id}/follow:
+    post:
+      summary: Follow a user (or request to follow if private)
+      operationId: followUser
+      tags: [Social Graph]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Follow state updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [FOLLOWING, REQUESTED] }
+
+  /feed/home:
+    get:
+      summary: Fetch home feed posts (algorithmic or chronological)
+      operationId: getHomeFeed
+      tags: [Feed]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: mode
+          in: query
+          schema: { type: string, enum: [ALGORITHMIC, FOLLOWING, FAVORITES], default: ALGORITHMIC }
+      responses:
+        '200':
+          description: Paginated post items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  next_cursor: { type: string }
+                  has_more: { type: boolean }
+
+  /posts:
+    post:
+      summary: Create a new photo/video/carousel post
+      operationId: createPost
+      tags: [Posts]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [media]
+              properties:
+                caption: { type: string }
+                post_type: { type: string, enum: [IMAGE, VIDEO, CAROUSEL], default: IMAGE }
+                visibility: { type: string, enum: [PUBLIC, FOLLOWERS, CLOSE_FRIENDS], default: PUBLIC }
+                media:
+                  type: array
+                  items:
+                    type: object
+                    required: [media_url]
+                    properties:
+                      media_url: { type: string }
+                      media_type: { type: string, enum: [IMAGE, VIDEO] }
+                      aspect_ratio: { type: string, default: "1:1" }
+                      filter_name: { type: string }
+                      alt_text: { type: string }
+      responses:
+        '201':
+          description: Post published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+  /posts/{id}:
+    get:
+      summary: Get post details by ID
+      operationId: getPostById
+      tags: [Posts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Post details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+  /posts/{id}/likes:
+    post:
+      summary: Like a post
+      operationId: likePost
+      tags: [Posts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Liked successfully
+    delete:
+      summary: Unlike a post
+      operationId: unlikePost
+      tags: [Posts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Unliked successfully
+
+  /posts/{id}/comments:
+    get:
+      summary: Get comments for post
+      operationId: getComments
+      tags: [Comments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+    post:
+      summary: Add a comment to post
+      operationId: addComment
+      tags: [Comments]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+                parent_id: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+
+  /stories/feed:
+    get:
+      summary: Get story trays of followed users
+      operationId: getStoriesFeed
+      tags: [Stories]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Active stories grouped by user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserStoryTray'
+
+  /reels/feed:
+    get:
+      summary: Vertical infinite swipe video stream
+      operationId: getReelsFeed
+      tags: [Reels]
+      parameters:
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Reels video stream
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reel'
+                  next_cursor: { type: string }
+
+  /direct/conversations:
+    get:
+      summary: List user conversations
+      operationId: listConversations
+      tags: [Direct]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Inbox conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+
+  /moderation/reports:
+    post:
+      summary: Submit a safety / violation report
+      operationId: createReport
+      tags: [Moderation]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content_type, content_id, reported_user_id, reason_category]
+              properties:
+                content_type: { type: string, enum: [POST, COMMENT, STORY, REEL, MESSAGE, USER] }
+                content_id: { type: string, format: uuid }
+                reported_user_id: { type: string, format: uuid }
+                reason_category: { type: string, enum: [SPAM, HARASSMENT, HATE_SPEECH, NUDITY, VIOLENCE, FRAUD] }
+                description: { type: string }
+      responses:
+        '201':
+          description: Report queued for review
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication failed or missing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: "RESOURCE_NOT_FOUND" }
+        message: { type: string, example: "The requested post does not exist." }
+        details: { type: object }
+
+    AuthResponse:
+      type: object
+      required: [access_token, refresh_token, token_type, expires_in, user]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string, example: "Bearer" }
+        expires_in: { type: integer, example: 900 }
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required: [id, username, email, full_name, is_private, is_verified, account_type]
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        email: { type: string }
+        full_name: { type: string }
+        avatar_url: { type: string, nullable: true }
+        is_private: { type: boolean }
+        is_verified: { type: boolean }
+        account_type: { type: string, enum: [PERSONAL, CREATOR, BUSINESS] }
+
+    Profile:
+      type: object
+      required: [user, posts_count, followers_count, following_count]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        bio: { type: string, nullable: true }
+        website_url: { type: string, nullable: true }
+        posts_count: { type: integer }
+        followers_count: { type: integer }
+        following_count: { type: integer }
+        is_following: { type: boolean, default: false }
+
+    PostMedia:
+      type: object
+      required: [id, media_url, media_type, aspect_ratio]
+      properties:
+        id: { type: string, format: uuid }
+        media_url: { type: string }
+        media_type: { type: string, enum: [IMAGE, VIDEO] }
+        aspect_ratio: { type: string }
+        filter_name: { type: string, nullable: true }
+        alt_text: { type: string, nullable: true }
+
+    Post:
+      type: object
+      required: [id, author, media, post_type, likes_count, comments_count, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        author:
+          $ref: '#/components/schemas/User'
+        caption: { type: string, nullable: true }
+        post_type: { type: string, enum: [IMAGE, VIDEO, CAROUSEL] }
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostMedia'
+        likes_count: { type: integer }
+        comments_count: { type: integer }
+        is_liked: { type: boolean, default: false }
+        is_saved: { type: boolean, default: false }
+        created_at: { type: string, format: date-time }
+
+    Comment:
+      type: object
+      required: [id, post_id, author, content, likes_count, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        post_id: { type: string, format: uuid }
+        author:
+          $ref: '#/components/schemas/User'
+        content: { type: string }
+        parent_id: { type: string, format: uuid, nullable: true }
+        likes_count: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    UserStoryTray:
+      type: object
+      required: [user, has_unseen_stories, stories]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        has_unseen_stories: { type: boolean }
+        stories:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              media_url: { type: string }
+              is_close_friends: { type: boolean }
+              expires_at: { type: string, format: date-time }
+
+    Reel:
+      type: object
+      required: [id, creator, video_url, thumbnail_url, views_count, likes_count, comments_count]
+      properties:
+        id: { type: string, format: uuid }
+        creator:
+          $ref: '#/components/schemas/User'
+        video_url: { type: string }
+        thumbnail_url: { type: string }
+        caption: { type: string, nullable: true }
+        views_count: { type: integer }
+        likes_count: { type: integer }
+        comments_count: { type: integer }
+        is_liked: { type: boolean, default: false }
+
+    Conversation:
+      type: object
+      required: [id, conversation_type, participants]
+      properties:
+        id: { type: string, format: uuid }
+        conversation_type: { type: string, enum: [DIRECT, GROUP] }
+        title: { type: string, nullable: true }
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        last_message:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            sender_id: { type: string, format: uuid }
+            content: { type: string }
+            created_at: { type: string, format: date-time }

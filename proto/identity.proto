@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package aura.identity.v1;
+
+option go_package = "github.com/dnjstjqppk-dev/instagram/proto/identity/v1;identityv1";
+
+service IdentityService {
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc BatchGetUsers(BatchGetUsersRequest) returns (BatchGetUsersResponse);
+}
+
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  string user_id = 2;
+  string username = 3;
+  string account_type = 4;
+  repeated string roles = 5;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string full_name = 4;
+  string avatar_url = 5;
+  bool is_private = 6;
+  bool is_verified = 7;
+  string account_type = 8;
+  string status = 9;
+}
+
+message BatchGetUsersRequest {
+  repeated string user_ids = 1;
+}
+
+message BatchGetUsersResponse {
+  repeated GetUserResponse users = 1;
+}
