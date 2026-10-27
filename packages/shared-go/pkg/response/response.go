@@ -38,3 +38,4 @@ func Error(w http.ResponseWriter, status int, code, message string, details inte
 		},
 	})
 }
+

@@ -422,3 +422,4 @@ function sendMessage() {
   height: 36px;
 }
 </style>
+

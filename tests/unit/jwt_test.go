@@ -55,3 +55,4 @@ func TestJWTTokenExpiry(t *testing.T) {
 		t.Errorf("Expected ErrTokenExpired, got %v", err)
 	}
 }
+

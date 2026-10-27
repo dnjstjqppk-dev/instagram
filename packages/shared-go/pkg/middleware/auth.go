@@ -80,3 +80,4 @@ func GetClaims(ctx context.Context) (*jwt.Claims, bool) {
 	claims, ok := ctx.Value(UserClaimsKey).(*jwt.Claims)
 	return claims, ok
 }
+

@@ -108,3 +108,4 @@ CREATE TABLE IF NOT EXISTS call_sessions (
     ended_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+

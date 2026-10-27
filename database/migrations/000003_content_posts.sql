@@ -162,3 +162,4 @@ CREATE TABLE IF NOT EXISTS post_collaborators (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY(post_id, user_id)
 );
+

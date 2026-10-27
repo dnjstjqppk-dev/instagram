@@ -126,3 +126,4 @@ CREATE TABLE IF NOT EXISTS ad_impressions_ledger (
 );
 
 CREATE INDEX idx_ad_impressions_creative ON ad_impressions_ledger(creative_id, viewed_at);
+

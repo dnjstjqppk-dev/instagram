@@ -45,3 +45,4 @@ message BatchGetUsersRequest {
 message BatchGetUsersResponse {
   repeated GetUserResponse users = 1;
 }
+

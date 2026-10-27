@@ -88,3 +88,4 @@ volumes:
   kafka_data:
   minio_data:
   opensearch_data:
+

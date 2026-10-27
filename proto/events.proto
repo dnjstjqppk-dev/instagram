@@ -47,3 +47,4 @@ message MessageSentPayload {
   string sender_id = 3;
   string message_type = 4;
 }
+

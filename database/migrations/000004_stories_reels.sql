@@ -141,3 +141,4 @@ CREATE TABLE IF NOT EXISTS notes (
 );
 
 CREATE INDEX idx_notes_user_expires ON notes(user_id, expires_at);
+

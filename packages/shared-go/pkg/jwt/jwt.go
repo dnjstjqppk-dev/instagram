@@ -103,3 +103,4 @@ func (m *JWTManager) sign(data string) string {
 	h.Write([]byte(data))
 	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
+
