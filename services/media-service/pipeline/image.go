@@ -168,3 +168,4 @@ func CreateSyntheticImage(w, h int, c color.Color) image.Image {
 	}
 	return img
 }
+

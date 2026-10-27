@@ -158,3 +158,4 @@ func TestOutboxPublisherWorkflow(t *testing.T) {
 		t.Errorf("Expected OutboxPublisher to process 'evt_outbox_1'")
 	}
 }
+

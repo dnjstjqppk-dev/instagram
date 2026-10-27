@@ -98,3 +98,4 @@ func (sm *StorageManager) GetMetadata(mediaID string) (*MediaMetadata, bool) {
 	copyRec := *rec
 	return &copyRec, true
 }
+

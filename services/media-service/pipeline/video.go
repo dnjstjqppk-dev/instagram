@@ -93,3 +93,4 @@ func (vp *VideoProcessor) GenerateHLSManifest(mediaID string, baseURL string) HL
 		ThumbnailURL:          fmt.Sprintf("%s/%s/thumbnails/poster.jpg", cleanBase, mediaID),
 	}
 }
+
