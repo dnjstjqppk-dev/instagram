@@ -20,3 +20,4 @@ type DLQRecord struct {
 	FailedAt   time.Time   `json:"failed_at"`
 	RetryCount int         `json:"retry_count"`
 }
+

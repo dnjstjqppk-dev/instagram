@@ -143,3 +143,4 @@ func BuildEventHandlers(cache *InMemoryFeedCache, followersProvider func(authorI
 		},
 	}
 }
+

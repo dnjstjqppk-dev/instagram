@@ -147,3 +147,4 @@ func (p *OutboxPublisher) processBatch(ctx context.Context) {
 		}
 	}
 }
+

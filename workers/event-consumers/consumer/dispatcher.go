@@ -99,3 +99,4 @@ func (d *Dispatcher) ClearProcessedOlderThan(ttl time.Duration) int {
 	}
 	return cleared
 }
+

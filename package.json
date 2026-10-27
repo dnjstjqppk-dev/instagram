@@ -4,6 +4,7 @@
   "private": true,
   "description": "Enterprise Global Social Network (Instagram Functional Parity)",
   "scripts": {
+    "build": "pnpm --filter @aura/web build",
     "dev:web": "pnpm --filter @aura/web dev",
     "dev:admin": "pnpm --filter @aura/admin dev",
     "dev:partner": "pnpm --filter @aura/partner dev",
