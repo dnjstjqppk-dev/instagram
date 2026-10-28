@@ -149,7 +149,7 @@ function handleLike(postId: string) {
     p.likes_count++
     fetch(`/api/v1/posts/${postId}/likes`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${authStore.token || 'mock'}` }
+      headers: { 'Authorization': `Bearer ${authStore.token}` }
     }).catch(() => {})
   }
 }
@@ -161,7 +161,7 @@ function handleUnlike(postId: string) {
     p.likes_count = Math.max(0, p.likes_count - 1)
     fetch(`/api/v1/posts/${postId}/likes`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${authStore.token || 'mock'}` }
+      headers: { 'Authorization': `Bearer ${authStore.token}` }
     }).catch(() => {})
   }
 }
@@ -174,7 +174,7 @@ function handleComment(payload: { postId: string; content: string }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authStore.token || 'mock'}`
+'Authorization': `Bearer ${authStore.token}`
       },
       body: JSON.stringify({ content: payload.content })
     }).catch(() => {})

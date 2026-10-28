@@ -13,6 +13,7 @@ type InMemoryFeedCache struct {
 	timelines     map[string][]string               // userID -> slice of postIDs
 	notifications map[string][]map[string]interface{} // userID -> notifications
 	searchIndex   map[string][]string               // tag -> slice of postIDs
+	followers     map[string]map[string]bool        // authorID -> followerID -> true
 }
 
 func NewFeedCache() *InMemoryFeedCache {
@@ -20,6 +21,7 @@ func NewFeedCache() *InMemoryFeedCache {
 		timelines:     make(map[string][]string),
 		notifications: make(map[string][]map[string]interface{}),
 		searchIndex:   make(map[string][]string),
+		followers:     make(map[string]map[string]bool),
 	}
 }
 
@@ -50,10 +52,29 @@ func (fc *InMemoryFeedCache) GetTimeline(userID string) []string {
 	return fc.timelines[userID]
 }
 
+func (fc *InMemoryFeedCache) AddFollower(followerID, followingID string) {
+	fc.mu.Lock()
+	defer fc.mu.Unlock()
+	if fc.followers[followingID] == nil {
+		fc.followers[followingID] = make(map[string]bool)
+	}
+	fc.followers[followingID][followerID] = true
+}
+
 func (fc *InMemoryFeedCache) GetNotifications(userID string) []map[string]interface{} {
 	fc.mu.RLock()
 	defer fc.mu.RUnlock()
 	return fc.notifications[userID]
+}
+
+func (fc *InMemoryFeedCache) GetFollowers(authorID string) []string {
+	fc.mu.RLock()
+	defer fc.mu.RUnlock()
+	out := make([]string, 0, len(fc.followers[authorID]))
+	for followerID := range fc.followers[authorID] {
+		out = append(out, followerID)
+	}
+	return out
 }
 
 func BuildEventHandlers(cache *InMemoryFeedCache, followersProvider func(authorID string) []string) map[string]EventHandler {
@@ -66,8 +87,14 @@ func BuildEventHandlers(cache *InMemoryFeedCache, followersProvider func(authorI
 			authorID, _ := e.Payload["author_id"].(string)
 
 			// 1. Fanout to followers
-			if followersProvider != nil {
-				followers := followersProvider(authorID)
+			if true {
+				var followers []string
+		if followersProvider != nil {
+			followers = followersProvider(authorID)
+		} else {
+			followers = cache.GetFollowers(authorID)
+		}
+		_ = followers
 				for _, followerID := range followers {
 					cache.PrependTimeline(followerID, postID)
 				}
@@ -96,7 +123,9 @@ func BuildEventHandlers(cache *InMemoryFeedCache, followersProvider func(authorI
 				return fmt.Errorf("invalid follower or following id")
 			}
 
-			// Add Follow Notification
+	cache.AddFollower(followerID, followingID)
+
+		// Add Follow Notification
 			cache.AddNotification(followingID, map[string]interface{}{
 				"id":         fmt.Sprintf("notif_%d", time.Now().UnixNano()),
 				"type":       "FOLLOW",

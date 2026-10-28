@@ -138,7 +138,7 @@ async function handlePublish() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authStore.token || 'mock_token'}`
+        'Authorization': `Bearer ${authStore.token}`
       },
       body: JSON.stringify(newPostData)
     })

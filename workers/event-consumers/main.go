@@ -18,10 +18,7 @@ func main() {
 	cache := consumer.NewFeedCache()
 	dispatcher := consumer.NewDispatcher(3)
 
-	handlers := consumer.BuildEventHandlers(cache, func(authorID string) []string {
-		// Mock followers resolution
-		return []string{"usr_follower_1", "usr_follower_2"}
-	})
+	handlers := consumer.BuildEventHandlers(cache, nil)
 
 	for eventType, handler := range handlers {
 		dispatcher.Register(eventType, handler)

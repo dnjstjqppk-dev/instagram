@@ -159,3 +159,51 @@ func TestOutboxPublisherWorkflow(t *testing.T) {
 	}
 }
 
+
+
+func TestEventConsumerFollowGraphFanout(t *testing.T) {
+	cache := consumer.NewFeedCache()
+	dispatcher := consumer.NewDispatcher(3)
+
+	handlers := consumer.BuildEventHandlers(cache, nil)
+	for eventType, handler := range handlers {
+		dispatcher.Register(eventType, handler)
+	}
+
+	// Establish follow relation via domain event instead of mock provider
+	followEvent := consumer.DomainEvent{
+		EventID:       "evt_follow_1",
+		EventType:     "FollowCreated",
+		AggregateType: "USER",
+		AggregateID:   "usr_creator",
+		Payload: map[string]interface{}{
+			"follower_id":  "usr_fan_1",
+			"following_id": "usr_creator",
+		},
+		Timestamp: time.Now(),
+	}
+	if err := dispatcher.Dispatch(followEvent); err != nil {
+		t.Fatalf("Failed to dispatch FollowCreated: %v", err)
+	}
+
+	postEvent := consumer.DomainEvent{
+		EventID:       "evt_post_200",
+		EventType:     "PostCreated",
+		AggregateType: "POST",
+		AggregateID:   "post_200",
+		Payload: map[string]interface{}{
+			"post_id":   "post_200",
+			"author_id": "usr_creator",
+			"hashtags":  []interface{}{"#test"},
+		},
+		Timestamp: time.Now(),
+	}
+	if err := dispatcher.Dispatch(postEvent); err != nil {
+		t.Fatalf("Failed to dispatch PostCreated: %v", err)
+	}
+
+	timeline := cache.GetTimeline("usr_fan_1")
+	if len(timeline) != 1 || timeline[0] != "post_200" {
+		t.Errorf("Expected follower timeline to contain 'post_200', got %v", timeline)
+	}
+}
